@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -26,6 +27,7 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Post("/shorten", createShortURL)
+	r.Get("/{shortID}", getURL)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("URL Shortener"))
@@ -52,4 +54,21 @@ func createShortURL(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(URLMapping{Short: short, Long: input.Long})
+}
+
+func getURL(w http.ResponseWriter, r *http.Request) {
+	shortID := chi.URLParam(r, "shortID")
+
+	var longURL string
+	longURL, err := storage.GetLongURL(shortID)
+	if err == sql.ErrNoRows {
+		http.NotFound(w, r)
+		return
+	} else if err != nil {
+		http.Error(w, "Failed to retrieve URL", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(URLMapping{Short: shortID, Long: longURL})
 }
