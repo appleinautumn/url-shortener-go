@@ -31,3 +31,7 @@ go.work.sum
 # .idea/
 # .vscode/
 
+# SQLite databases
+*.sqlite
+*.sqlite3
+*.db
