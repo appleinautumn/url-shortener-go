@@ -7,10 +7,12 @@ import (
 	"log"
 	"math/rand/v2"
 	"net/http"
+	"os"
 
 	"url-shortener-go/storage"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 )
 
 type URLMapping struct {
@@ -19,7 +21,17 @@ type URLMapping struct {
 }
 
 func main() {
-	if err := storage.InitDB("dev.db"); err != nil {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	dbFile := os.Getenv("DB_FILE")
+	if dbFile == "" {
+		log.Fatalf("DB_FILE must be set in the .env file")
+	}
+
+	if err := storage.InitDB(dbFile); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer storage.CloseDB()
