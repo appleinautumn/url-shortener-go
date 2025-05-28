@@ -6,14 +6,14 @@ This is a simple URL shortener service implemented in Go. It provides an HTTP AP
 
 - Shorten long URLs to short IDs via a POST request.
 - Resolve short IDs to the original URLs via a GET request.
-- Stores URL mappings in a SQLite database (`urls.db`).
+- Stores URL mappings in a SQLite database.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Go 1.18 or later installed.
-- SQLite3 installed (for the database).
+- Go 1.18 or later.
+- SQLite3.
 
 ### Installation
 
@@ -27,7 +27,7 @@ This is a simple URL shortener service implemented in Go. It provides an HTTP AP
 2. Build the project:
 
    ```bash
-   go build -o url-shortener main.go
+   go build -o url-shortener cmd/main.go
    ```
 
 3. Run the service:
@@ -37,6 +37,22 @@ This is a simple URL shortener service implemented in Go. It provides an HTTP AP
    ```
 
    The server listens on port `8080`.
+
+### Running the Program
+
+Make sure you have a `.env` file in the project root with the following content:
+
+```
+DB_FILE=dev.db
+```
+
+Then run the program executable:
+
+```bash
+./url-shortener
+```
+
+The server will start listening on port `8080`.
 
 ## API Endpoints
 
