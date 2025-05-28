@@ -45,8 +45,13 @@ func main() {
 		w.Write([]byte("URL Shortener"))
 	})
 
-	log.Println("Listening on :8080...")
-	http.ListenAndServe(":8080", r)
+	appPort := os.Getenv("APP_PORT")
+	if appPort == "" {
+		appPort = "8080"
+	}
+
+	log.Printf("Listening on :%s...", appPort)
+	http.ListenAndServe(":"+appPort, r)
 }
 
 func createShortURL(w http.ResponseWriter, r *http.Request) {
