@@ -23,5 +23,10 @@ func Routes() *chi.Mux {
 		w.Write([]byte("URL Shortener"))
 	})
 
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+
 	return r
 }
