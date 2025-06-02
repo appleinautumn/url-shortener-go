@@ -17,7 +17,7 @@ type URLMapping struct {
 	Long  string `json:"long"`
 }
 
-func CreateShortURL(w http.ResponseWriter, r *http.Request) {
+func CreateURL(w http.ResponseWriter, r *http.Request) {
 	var input URLMapping
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -32,7 +32,6 @@ func CreateShortURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(URLMapping{Short: short, Long: input.Long})
 }
 
@@ -49,6 +48,5 @@ func GetURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(URLMapping{Short: shortID, Long: longURL})
 }

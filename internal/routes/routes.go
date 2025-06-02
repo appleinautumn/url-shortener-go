@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"url-shortener-go/internal/handlers"
+	"url-shortener-go/internal/middlewares"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -16,7 +17,10 @@ type URLMapping struct {
 func Routes() *chi.Mux {
 	r := chi.NewRouter()
 
-	r.Post("/shorten", handlers.CreateShortURL)
+	// Middleware
+	r.Use(middlewares.JSONContentType)
+
+	r.Post("/shorten", handlers.CreateURL)
 	r.Get("/{shortID}", handlers.GetURL)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
