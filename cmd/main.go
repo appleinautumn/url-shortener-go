@@ -30,6 +30,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Get environment
+	appEnv := os.Getenv("APP_ENV")
+	if appEnv == "" {
+		appEnv = "development"
+	}
+	slog.Info("Environment", "APP_ENV", appEnv)
+
+	// Get database location
 	dbFile := os.Getenv("DB_FILE")
 	if dbFile == "" {
 		slog.Error("DB_FILE must be set in the .env file")
