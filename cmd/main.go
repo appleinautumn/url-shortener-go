@@ -7,12 +7,11 @@ import (
 	"os/signal"
 	"time"
 
+	"url-shortener-go/internal/config"
 	"url-shortener-go/internal/routes"
 	"url-shortener-go/storage"
 
 	"log/slog"
-
-	"github.com/joho/godotenv"
 )
 
 type URLMapping struct {
@@ -24,27 +23,15 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	// Load .env file
-	if err := godotenv.Load(); err != nil {
-		slog.Error("Error loading .env file", "error", err)
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		slog.Error("Failed to load config", "error", err)
 		os.Exit(1)
 	}
 
-	// Get environment
-	appEnv := os.Getenv("APP_ENV")
-	if appEnv == "" {
-		appEnv = "development"
-	}
-	slog.Info("Environment", "APP_ENV", appEnv)
+	slog.Info("Environment", "APP_ENV", cfg.AppEnv)
 
-	// Get database location
-	dbFile := os.Getenv("DB_FILE")
-	if dbFile == "" {
-		slog.Error("DB_FILE must be set in the .env file")
-		os.Exit(1)
-	}
-
-	if err := storage.InitDB(dbFile); err != nil {
+	if err := storage.InitDB(cfg.DBFile); err != nil {
 		slog.Error("Failed to initialize database", "error", err)
 		os.Exit(1)
 	}
@@ -52,15 +39,10 @@ func main() {
 
 	r := routes.Routes()
 
-	appPort := os.Getenv("APP_PORT")
-	if appPort == "" {
-		appPort = "8080"
-	}
-
-	slog.Info("Listening on port", "port", appPort)
+	slog.Info("Listening on port", "port", cfg.AppPort)
 
 	srv := &http.Server{
-		Addr:    ":" + appPort,
+		Addr:    ":" + cfg.AppPort,
 		Handler: r,
 	}
 
