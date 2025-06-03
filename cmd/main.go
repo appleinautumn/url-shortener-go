@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,6 +9,8 @@ import (
 
 	"url-shortener-go/internal/routes"
 	"url-shortener-go/storage"
+
+	"log/slog"
 
 	"github.com/joho/godotenv"
 )
@@ -20,18 +21,24 @@ type URLMapping struct {
 }
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	// Load .env file
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		slog.Error("Error loading .env file", "error", err)
+		os.Exit(1)
 	}
 
 	dbFile := os.Getenv("DB_FILE")
 	if dbFile == "" {
-		log.Fatalf("DB_FILE must be set in the .env file")
+		slog.Error("DB_FILE must be set in the .env file")
+		os.Exit(1)
 	}
 
 	if err := storage.InitDB(dbFile); err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+		slog.Error("Failed to initialize database", "error", err)
+		os.Exit(1)
 	}
 	defer storage.CloseDB()
 
@@ -42,7 +49,7 @@ func main() {
 		appPort = "8080"
 	}
 
-	log.Printf("Listening on :%s...", appPort)
+	slog.Info("Listening on port", "port", appPort)
 
 	srv := &http.Server{
 		Addr:    ":" + appPort,
@@ -56,22 +63,22 @@ func main() {
 	// Run server in a goroutine
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("ListenAndServe(): %v", err)
+			slog.Error("ListenAndServe error", "error", err)
 		}
 	}()
 
 	// Block until a signal is received
 	<-stop
 
-	log.Println("Shutting down server...")
+	slog.Info("Shutting down server...")
 
 	// Create a context with timeout for graceful shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server Shutdown Failed:%+v", err)
+		slog.Error("Server Shutdown Failed", "error", err)
 	}
 
-	log.Println("Server exited properly")
+	slog.Info("Server exited properly")
 }
