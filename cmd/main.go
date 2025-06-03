@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,24 +11,27 @@ import (
 	"url-shortener-go/internal/config"
 	"url-shortener-go/internal/routes"
 	"url-shortener-go/storage"
-
-	"log/slog"
 )
 
-type URLMapping struct {
-	Short string `json:"short"`
-	Long  string `json:"long"`
-}
-
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
-
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		slog.Error("Failed to load config", "error", err)
 		os.Exit(1)
 	}
+
+	var level slog.Level
+	switch cfg.AppEnv {
+	case "production":
+		level = slog.LevelWarn
+	case "development":
+		level = slog.LevelDebug
+	default:
+		level = slog.LevelInfo
+	}
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level}))
+	slog.SetDefault(logger)
 
 	slog.Info("Environment", "APP_ENV", cfg.AppEnv)
 
