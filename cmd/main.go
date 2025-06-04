@@ -10,7 +10,7 @@ import (
 
 	"url-shortener-go/internal/config"
 	"url-shortener-go/internal/routes"
-	"url-shortener-go/storage"
+	"url-shortener-go/internal/storage"
 )
 
 func main() {
