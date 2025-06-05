@@ -34,17 +34,3 @@ func CloseDB() {
 		db.Close()
 	}
 }
-
-// StoreURL saves a short URL and its corresponding long URL to the database.
-func StoreURL(short, long string) error {
-	_, err := db.Exec("INSERT INTO urls (short, long) VALUES (?, ?)", short, long)
-	return err
-}
-
-// GetLongURL retrieves the long URL for a given short ID.
-// It returns sql.ErrNoRows if the short ID is not found.
-func GetLongURL(shortID string) (string, error) {
-	var longURL string
-	err := db.QueryRow("SELECT long FROM urls WHERE short = ?", shortID).Scan(&longURL)
-	return longURL, err
-}
