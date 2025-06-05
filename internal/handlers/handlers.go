@@ -8,7 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 
-	"url-shortener-go/storage"
+	"url-shortener-go/internal/storage"
 
 	"github.com/go-chi/chi/v5"
 )

@@ -19,6 +19,7 @@ func Routes() *chi.Mux {
 
 	// Middleware
 	r.Use(middlewares.JSONContentType)
+	r.Use(middlewares.Logging)
 
 	r.Post("/shorten", handlers.CreateURL)
 	r.Get("/{shortID}", handlers.GetURL)
