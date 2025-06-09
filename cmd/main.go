@@ -9,11 +9,15 @@ import (
 	"time"
 
 	"url-shortener-go/internal/config"
+	"url-shortener-go/internal/handlers"
+	"url-shortener-go/internal/repository"
 	"url-shortener-go/internal/routes"
+	"url-shortener-go/internal/services"
 	"url-shortener-go/internal/storage"
 )
 
 func main() {
+	// Load configuration
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		slog.Error("Failed to load config", "error", err)
@@ -30,18 +34,30 @@ func main() {
 		level = slog.LevelInfo
 	}
 
+	// Initialize logger
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level}))
 	slog.SetDefault(logger)
-
 	slog.Info("Environment", "APP_ENV", cfg.AppEnv)
 
+	// Initialize database
 	if err := storage.InitDB(cfg.DBFile); err != nil {
 		slog.Error("Failed to initialize database", "error", err)
 		os.Exit(1)
 	}
 	defer storage.CloseDB()
 
-	r := routes.Routes()
+	db := storage.GetDB()
+	if db == nil {
+		slog.Error("Database connection is nil")
+		os.Exit(1)
+	}
+
+	// Initialize repository, service, and handler
+	urlRepo := repository.NewURLRepository(db)
+	urlService := services.NewURLService(urlRepo)
+	handler := handlers.NewHandler(urlService)
+
+	r := routes.Routes(handler)
 
 	slog.Info("Listening on port", "port", cfg.AppPort)
 

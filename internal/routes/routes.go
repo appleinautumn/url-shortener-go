@@ -9,20 +9,15 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type URLMapping struct {
-	Short string `json:"short"`
-	Long  string `json:"long"`
-}
-
-func Routes() *chi.Mux {
+func Routes(handler *handlers.Handler) *chi.Mux {
 	r := chi.NewRouter()
 
 	// Middleware
 	r.Use(middlewares.JSONContentType)
 	r.Use(middlewares.Logging)
 
-	r.Post("/shorten", handlers.CreateURL)
-	r.Get("/{shortID}", handlers.GetURL)
+	r.Post("/shorten", handler.CreateURL)
+	r.Get("/{shortID}", handler.GetURL)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("URL Shortener"))

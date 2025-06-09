@@ -3,12 +3,10 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log/slog"
-	"math/rand"
 	"net/http"
 
-	"url-shortener-go/internal/storage"
+	"url-shortener-go/internal/services"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -18,7 +16,15 @@ type URLMapping struct {
 	Long  string `json:"long"`
 }
 
-func CreateURL(w http.ResponseWriter, r *http.Request) {
+type Handler struct {
+	service services.URLService
+}
+
+func NewHandler(service services.URLService) *Handler {
+	return &Handler{service: service}
+}
+
+func (h *Handler) CreateURL(w http.ResponseWriter, r *http.Request) {
 	var input URLMapping
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		slog.Error("Invalid JSON in request body", "error", err)
@@ -26,12 +32,10 @@ func CreateURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate random short ID
-	short := fmt.Sprintf("%x", rand.Intn(100000))
-
-	if err := storage.StoreURL(short, input.Long); err != nil {
-		slog.Error("Failed to store URL", "error", err, "short", short, "long", input.Long)
-		http.Error(w, "Failed to store URL", http.StatusInternalServerError)
+	short, err := h.service.CreateShortURL(input.Long)
+	if err != nil {
+		slog.Error("Failed to create short URL", "error", err)
+		http.Error(w, "Failed to create short URL", http.StatusInternalServerError)
 		return
 	}
 
@@ -39,11 +43,10 @@ func CreateURL(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(URLMapping{Short: short, Long: input.Long})
 }
 
-func GetURL(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 	shortID := chi.URLParam(r, "shortID")
 
-	var longURL string
-	longURL, err := storage.GetLongURL(shortID)
+	longURL, err := h.service.GetLongURL(shortID)
 	if err == sql.ErrNoRows {
 		slog.Warn("URL not found", "short", shortID)
 		http.NotFound(w, r)

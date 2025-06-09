@@ -28,6 +28,10 @@ func InitDB(dataSourceName string) error {
 	return err
 }
 
+func GetDB() *sql.DB {
+	return db
+}
+
 // CloseDB closes the database connection.
 func CloseDB() {
 	if db != nil {
