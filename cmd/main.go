@@ -40,17 +40,12 @@ func main() {
 	slog.Info("Environment", "APP_ENV", cfg.AppEnv)
 
 	// Initialize database
-	if err := storage.InitDB(cfg.DBFile); err != nil {
+	db, err := storage.InitDB(cfg.DBFile)
+	if err != nil {
 		slog.Error("Failed to initialize database", "error", err)
 		os.Exit(1)
 	}
-	defer storage.CloseDB()
-
-	db := storage.GetDB()
-	if db == nil {
-		slog.Error("Database connection is nil")
-		os.Exit(1)
-	}
+	defer db.Close()
 
 	// Initialize repository, service, and handler
 	urlRepo := repository.NewURLRepository(db)

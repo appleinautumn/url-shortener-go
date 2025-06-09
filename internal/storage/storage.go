@@ -6,16 +6,13 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-var db *sql.DB
-
-func InitDB(dataSourceName string) error {
-	var err error
-	db, err = sql.Open("sqlite", dataSourceName)
+func InitDB(dataSourceName string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite", dataSourceName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err = db.Ping(); err != nil {
-		return err
+		return nil, err
 	}
 
 	createTableSQL := `CREATE TABLE IF NOT EXISTS urls (
@@ -25,15 +22,15 @@ func InitDB(dataSourceName string) error {
 	);`
 
 	_, err = db.Exec(createTableSQL)
-	return err
-}
+	if err != nil {
+		return nil, err
+	}
 
-func GetDB() *sql.DB {
-	return db
+	return db, nil
 }
 
 // CloseDB closes the database connection.
-func CloseDB() {
+func CloseDB(db *sql.DB) {
 	if db != nil {
 		db.Close()
 	}
